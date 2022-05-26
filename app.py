@@ -20,7 +20,7 @@ db = client.dbturtle
 # 4강 데코레이트 함수
 def authorize(f):  # 함수인자로 받기
     @wraps(f)  # 한가지 함수를 여러가지 함수에 적용시키면 발생하는 에러 해결
-    def decorated_function():  # 데코레이트 함수 정의
+    def decorated_function(*args, **kargs):  # 데코레이트 함수 정의
         if not 'Authorization' in request.headers:
             abort(401)
             # 헤더에 authorization이 있는지 확인하고 토큰이 없다면 401로 에러
@@ -32,7 +32,7 @@ def authorize(f):  # 함수인자로 받기
         except:
             abort(401)
             # decode안되면 에러
-        return f(user)  # 얻어진 user값 함수안에 넣어 돌리기
+        return f(user, *args, **kargs)  # 얻어진 user값 함수안에 넣어 돌리기
     return decorated_function  # 데코레이트 함수 리턴
 
 
@@ -150,6 +150,26 @@ def get_article_detail(article_id):
     article['_id'] = str(article['_id'])  # str으로 바꿔주고
 
     return jsonify({'message': 'success', 'article': article})  # DB정보 리턴
+
+
+# 게시글 수정 - 게시글 url동일, method만 patch로 작성
+@app.route("/article/<article_id>", methods=["PATCH"])
+@authorize  # 회원이어야 하고, 본인이어야 함
+def patch_article_detail(user, article_id):
+    # 인자가 2개 -> 이때 생기는 문제 해결 -> authorize()의 데코레이트함수인자 및 리턴에 *args, **kargs추가
+    # *args: 리스트형태로 인자가 들어가도 됨,**kargs: keyword:value형태로 몇개씩 들어가도 가능
+    # user이외에 다른 것이 들어갔을때 정상작동 (별한개, 두개가 중요)
+    data = json.loads(request.data)
+    title = data.get('title')
+    content = data.get('content')
+
+    article = db.article.update_one({'_id': ObjectId(article_id), 'user': user['id']}, {
+        '$set': {'title': title, 'content': content}})
+    print(article.matched_count)  # 노션참고
+    if article.matched_count:
+        return jsonify({'message': 'success'})
+    else:
+        return jsonify({'message': 'fail'}), 403
 
 
 if __name__ == '__main__':
