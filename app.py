@@ -147,9 +147,11 @@ def get_article_detail(article_id):
     article = db.article.find_one({'_id': ObjectId(article_id)})
     # article_id를 ObjectId화 하고(반드시!) 이 값을 DB에서 찾기
     print(article)
-    article['_id'] = str(article['_id'])  # str으로 바꿔주고
-
-    return jsonify({'message': 'success', 'article': article})  # DB정보 리턴
+    if article:  # article이 있다면(에러처리)
+        article['_id'] = str(article['_id'])  # str으로 바꿔주고
+        return jsonify({'message': 'success', 'article': article})  # DB정보 리턴
+    else:
+        return jsonify({'message': 'fail'}), 404
 
 
 # 게시글 수정 - 게시글 url동일, method만 patch로 작성
@@ -167,6 +169,18 @@ def patch_article_detail(user, article_id):
         '$set': {'title': title, 'content': content}})
     print(article.matched_count)  # 노션참고
     if article.matched_count:
+        return jsonify({'message': 'success'})
+    else:
+        return jsonify({'message': 'fail'}), 403
+
+
+# 게시글 삭제
+@app.route("/article/<article_id>", methods=["DELETE"])
+@authorize
+def delete_article_detail(user, article_id):
+    article = db.article.delete_one(
+        {'_id': ObjectId(article_id), 'user': user['id']})
+    if article.deleted_count:  # 0 또는 1
         return jsonify({'message': 'success'})
     else:
         return jsonify({'message': 'fail'}), 403
