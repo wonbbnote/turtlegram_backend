@@ -1,10 +1,9 @@
 from functools import wraps
-from os import abort
 from bson import ObjectId
 from pymongo import MongoClient
 import hashlib
 import json
-from flask import Flask, jsonify, request
+from flask import Flask, abort, jsonify, request
 from flask_cors import CORS
 from datetime import datetime, timedelta
 import jwt
@@ -111,7 +110,7 @@ def get_user_info(user):  # 데코레이트 함수 쓰면 user정의할 필요 �
 
 # 게시글 작성 api
 @app.route("/article", methods=["POST"])
-@authorize
+@authorize  # 인증된사람만 글쓸수 있음
 def post_article(user):
     data = json.loads(request.data)
     print(data)
@@ -139,6 +138,14 @@ def get_article():
         article['_id'] = str(article["_id"])  # objectId string으로
 
     return jsonify({"message": "success", "articles": articles})
+
+
+# 게시글 상세페이지 작성
+@app.route("/article/<article_id>", methods=["GET"])
+def get_article_detail(article_id):
+    print(article_id)
+
+    return jsonify({'message': 'success', 'article_id': article_id})
 
 
 if __name__ == '__main__':
