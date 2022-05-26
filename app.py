@@ -105,7 +105,7 @@ def get_user_info(user):  # 데코레이트 함수 쓰면 user정의할 필요 �
     # print("3.", user)
     result = db.user.find_one({'_id': ObjectId(user["id"])})
     print("4.", result)
-    return jsonify({"message": "success", "email": result['email']})
+    return jsonify({"message": "success", "email": result['email'], 'id': user['id']})
 
 
 # 게시글 작성 api
