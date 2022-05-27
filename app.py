@@ -212,5 +212,12 @@ def post_comment(user, article_id):
     return jsonify({"message": "success"})
 
 
+@app.route("/article/<article_id>/comment", methods=["GET"])
+def get_comment(article_id):
+    comments = list(db.comment.find({"post": article_id}))
+    json_comments = json.loads(dumps(comments))
+    return jsonify({"message": "success", "comments": json.comments})
+
+
 if __name__ == '__main__':
     app.run('0.0.0.0', port=5000, debug=True)
