@@ -7,6 +7,7 @@ from flask import Flask, abort, jsonify, request
 from flask_cors import CORS
 from datetime import datetime, timedelta
 import jwt
+from json import dumps
 
 SECRET_KEY = 'turtle'
 
@@ -146,9 +147,11 @@ def get_article_detail(article_id):
     print(article_id)
     article = db.article.find_one({'_id': ObjectId(article_id)})
     # article_id를 ObjectId화 하고(반드시!) 이 값을 DB에서 찾기
-    print(article)
+    comments = list(db.comment.find({"article": article_id}))
+    print(comments)
     if article:  # article이 있다면(에러처리)
         article['_id'] = str(article['_id'])  # str으로 바꿔주고
+        article["comments"] = json.loads(dumps(comments))
         return jsonify({'message': 'success', 'article': article})  # DB정보 리턴
     else:
         return jsonify({'message': 'fail'}), 404
