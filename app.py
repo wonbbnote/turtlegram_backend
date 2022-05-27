@@ -186,5 +186,28 @@ def delete_article_detail(user, article_id):
         return jsonify({'message': 'fail'}), 403
 
 
+# 댓글 작성
+@app.route("/article/<article_id>/comment", methods=["POST"])
+@authorize
+def post_comment(user, article_id):
+    data = json.loads(request.data)
+    print(data)
+
+    db_user = db.user.find_one({'_id': ObjectId(user.get('id'))})
+
+    now = datetime.now().strftime("%H:%M:%S")
+
+    doc = {
+        "article": article_id,
+        "content": data.get("content", None),
+        "user": user['id'],
+        "user_email": db_user['email'],
+        "time": now
+    }
+    print(doc)
+    db.comment.insert_one(doc)
+    return jsonify({"message": "success"})
+
+
 if __name__ == '__main__':
     app.run('0.0.0.0', port=5000, debug=True)
